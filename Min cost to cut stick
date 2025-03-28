@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Recursive Approach (Memoization)
+int minCostRec(int i, int j, vector<int>& cuts, vector<vector<int>>& dp) {
+    if (i > j) return 0;  // No more cuts needed
+
+    if (dp[i][j] != -1) return dp[i][j];
+
+    int minCost = INT_MAX;
+    for (int ind = i; ind <= j; ind++) {
+        int cost = (cuts[j + 1] - cuts[i - 1]) 
+                   + minCostRec(i, ind - 1, cuts, dp) 
+                   + minCostRec(ind + 1, j, cuts, dp);
+        minCost = min(minCost, cost);
+    }
+
+    return dp[i][j] = minCost;
+}
+
+// Tabulation Approach (Bottom-Up DP)
+int minCostTabulation(vector<int>& cuts, int n, int c) {
+    cuts.push_back(n);
+    cuts.insert(cuts.begin(), 0);
+    sort(cuts.begin(), cuts.end());
+    
+    vector<vector<int>> dp(c + 2, vector<int>(c + 2, 0));
+
+    for (int i = c; i >= 1; i--) {
+        for (int j = i; j <= c; j++) {
+            int minCost = INT_MAX;
+            for (int ind = i; ind <= j; ind++) {
+                int cost = (cuts[j + 1] - cuts[i - 1]) 
+                           + dp[i][ind - 1] + dp[ind + 1][j];
+                minCost = min(minCost, cost);
+            }
+            dp[i][j] = minCost;
+        }
+    }
+    return dp[1][c];
+}
+
+// Space Optimized Approach (Not Possible in this case)
+// Since we need a full 2D DP table to compute results, full space optimization isn't feasible.
+
+int main() {
+    int n, c;
+    cout << "Enter the length of the stick: ";
+    cin >> n;
+
+    cout << "Enter the number of cuts: ";
+    cin >> c;
+
+    vector<int> cuts(c);
+    cout << "Enter the cut positions: ";
+    for (int i = 0; i < c; i++) {
+        cin >> cuts[i];
+    }
+
+    // Recursive Approach (Memoization)
+    vector<vector<int>> dp(c + 1, vector<int>(c + 1, -1));
+    cout << "Minimum Cost (Recursive): " << minCostRec(1, c, cuts, dp) << endl;
+
+    // Tabulation Approach
+    cout << "Minimum Cost (Tabulation): " << minCostTabulation(cuts, n, c) << endl;
+
+    return 0;
+}
