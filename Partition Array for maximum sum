@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Memoization Approach
+int f(int i, int n, int k, vector<int> &arr, vector<int> &dp) {
+    if (i == n) return 0; // Base Case
+
+    if (dp[i] != -1) return dp[i];
+
+    int maxSum = INT_MIN;
+    int len = 0, maxi = INT_MIN;
+
+    for (int j = i; j < min(i + k, n); j++) {
+        maxi = max(maxi, arr[j]);
+        len++;
+        int partitionSum = (len * maxi) + f(j + 1, n, k, arr, dp);
+        maxSum = max(maxSum, partitionSum);
+    }
+    return dp[i] = maxSum;
+}
+
+// Tabulation Approach
+int tabulation(vector<int> &arr, int n, int k) {
+    vector<int> dp(n + 1, 0);
+
+    for (int i = n - 1; i >= 0; i--) {
+        int maxSum = INT_MIN;
+        int len = 0, maxi = INT_MIN;
+
+        for (int j = i; j < min(i + k, n); j++) {
+            maxi = max(maxi, arr[j]);
+            len++;
+            int partitionSum = (len * maxi) + dp[j + 1];
+            maxSum = max(maxSum, partitionSum);
+        }
+        dp[i] = maxSum;
+    }
+    return dp[0];
+}
+
+// Space-Optimized Approach
+int spaceOptimized(vector<int> &arr, int n, int k) {
+    vector<int> dp(n + 1, 0);
+
+    for (int i = n - 1; i >= 0; i--) {
+        int maxSum = 0, maxi = 0;
+        
+        for (int j = i; j < min(i + k, n); j++) {
+            maxi = max(maxi, arr[j]);
+            maxSum = max(maxSum, (j - i + 1) * maxi + dp[j + 1]);
+        }
+        
+        dp[i] = maxSum;
+    }
+    return dp[0];
+}
+
+// Main Function for User Input
+int main() {
+    int n, k;
+    cout << "Enter size of array: ";
+    cin >> n;
+    
+    vector<int> arr(n);
+    cout << "Enter array elements: ";
+    for (int i = 0; i < n; i++) cin >> arr[i];
+    
+    cout << "Enter partition size k: ";
+    cin >> k;
+
+    // Memoization Approach
+    vector<int> dp(n, -1);
+    cout << "Maximum sum (Memoization): " << f(0, n, k, arr, dp) << endl;
+
+    // Tabulation Approach
+    cout << "Maximum sum (Tabulation): " << tabulation(arr, n, k) << endl;
+
+    // Space-Optimized Approach
+    cout << "Maximum sum (Space Optimized): " << spaceOptimized(arr, n, k) << endl;
+
+    return 0;
+}
