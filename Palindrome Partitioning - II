@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+bool isPalindrome(int l, int r, string &s) {
+    while (l < r) {
+        if (s[l] != s[r]) return false;
+        l++, r--;
+    }
+    return true;
+}
+
+// Recursive + Memoization Approach
+int f(int i, int n, string &str, vector<int> &dp) {
+    if (i == n) return 0; // No cuts needed when no characters left
+
+    if (dp[i] != -1) return dp[i];
+
+    int minCuts = INT_MAX;
+    for (int ind = i; ind < n; ind++) {
+        if (isPalindrome(i, ind, str)) {
+            int partitions = 1 + f(ind + 1, n, str, dp);
+            minCuts = min(minCuts, partitions);
+        }
+    }
+    return dp[i] = minCuts;
+}
+
+// Tabulation Approach (Bottom-Up DP)
+int tabulation(int n, string &str) {
+    vector<int> dp(n + 1, 0);
+
+    for (int i = n - 1; i >= 0; i--) {
+        int minCuts = INT_MAX;
+        for (int ind = i; ind < n; ind++) {
+            if (isPalindrome(i, ind, str)) {
+                int partitions = 1 + dp[ind + 1];
+                minCuts = min(minCuts, partitions);
+            }
+        }
+        dp[i] = minCuts;
+    }
+
+    return dp[0] - 1;  // Subtract 1 as the last partition does not require a cut
+}
+
+// Space Optimization is not possible because we need an array to store results of previous states
+
+// Main Function for User Input
+int main() {
+    string str;
+    cout << "Enter the string: ";
+    cin >> str;
+
+    int n = str.size();
+
+    // Recursive Approach (Memoization)
+    vector<int> dp(n, -1);
+    cout << "Minimum cuts (Recursive): " << f(0, n, str, dp) - 1 << endl;
+
+    // Tabulation Approach
+    cout << "Minimum cuts (Tabulation): " << tabulation(n, str) << endl;
+
+    return 0;
+}
