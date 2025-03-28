@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int mod = 1e9+7;
+typedef long long ll;
+
+ll modAdd(ll a, ll b) {
+    return ((a % mod) + (b % mod)) % mod;
+}
+
+ll modMul(ll a, ll b) {
+    return ((a % mod) * (b % mod)) % mod;
+}
+
+// Recursive + Memoization Approach
+ll f(int i, int j, int isTrue, string& exp, vector<vector<vector<ll>>>& dp) {
+    if (i > j) return 0;
+    if (i == j) return (isTrue ? (exp[i] == 'T') : (exp[i] == 'F'));
+
+    if (dp[i][j][isTrue] != -1) return dp[i][j][isTrue];
+
+    ll ways = 0;
+    for (int ind = i + 1; ind <= j - 1; ind += 2) {
+        ll LT = f(i, ind - 1, 1, exp, dp);  // Left True
+        ll LF = f(i, ind - 1, 0, exp, dp);  // Left False
+        ll RT = f(ind + 1, j, 1, exp, dp);  // Right True
+        ll RF = f(ind + 1, j, 0, exp, dp);  // Right False
+
+        if (exp[ind] == '&') {
+            ways = isTrue ? modAdd(ways, modMul(LT, RT)) 
+                          : modAdd(ways, modAdd(modMul(LT, RF), modAdd(modMul(LF, RT), modMul(LF, RF))));
+        }
+        else if (exp[ind] == '|') {
+            ways = isTrue ? modAdd(ways, modAdd(modMul(LT, RT), modAdd(modMul(LT, RF), modMul(LF, RT)))) 
+                          : modAdd(ways, modMul(LF, RF));
+        }
+        else if (exp[ind] == '^') {
+            ways = isTrue ? modAdd(ways, modAdd(modMul(LT, RF), modMul(LF, RT))) 
+                          : modAdd(ways, modAdd(modMul(LT, RT), modMul(LF, RF)));
+        }
+    }
+
+    return dp[i][j][isTrue] = ways;
+}
+
+// Tabulation Approach (Bottom-Up DP)
+int tabulation(string& exp) {
+    int n = exp.size();
+    vector<vector<vector<ll>>> dp(n, vector<vector<ll>>(n, vector<ll>(2, 0)));
+
+    // Base case: When i == j (single character)
+    for (int i = 0; i < n; i++) {
+        dp[i][i][1] = (exp[i] == 'T');
+        dp[i][i][0] = (exp[i] == 'F');
+    }
+
+    // Filling DP Table
+    for (int len = 3; len <= n; len += 2) {
+        for (int i = 0; i <= n - len; i++) {
+            int j = i + len - 1;
+            for (int isTrue = 0; isTrue <= 1; isTrue++) {
+                ll ways = 0;
+                for (int ind = i + 1; ind <= j - 1; ind += 2) {
+                    ll LT = dp[i][ind - 1][1], LF = dp[i][ind - 1][0];
+                    ll RT = dp[ind + 1][j][1], RF = dp[ind + 1][j][0];
+
+                    if (exp[ind] == '&') {
+                        ways = isTrue ? modAdd(ways, modMul(LT, RT)) 
+                                      : modAdd(ways, modAdd(modMul(LT, RF), modAdd(modMul(LF, RT), modMul(LF, RF))));
+                    }
+                    else if (exp[ind] == '|') {
+                        ways = isTrue ? modAdd(ways, modAdd(modMul(LT, RT), modAdd(modMul(LT, RF), modMul(LF, RT)))) 
+                                      : modAdd(ways, modMul(LF, RF));
+                    }
+                    else if (exp[ind] == '^') {
+                        ways = isTrue ? modAdd(ways, modAdd(modMul(LT, RF), modMul(LF, RT))) 
+                                      : modAdd(ways, modAdd(modMul(LT, RT), modMul(LF, RF)));
+                    }
+                }
+                dp[i][j][isTrue] = ways;
+            }
+        }
+    }
+    return dp[0][n - 1][1];
+}
+
+// Space Optimization is not possible in this problem due to the dependency on multiple previous subproblems.
+
+// Main Function for User Input
+int main() {
+    string exp;
+    cout << "Enter the boolean expression: ";
+    cin >> exp;
+
+    int n = exp.size();
+    
+    // Recursive Approach (Memoization)
+    vector<vector<vector<ll>>> dp(n, vector<vector<ll>>(n, vector<ll>(2, -1)));
+    cout << "Number of ways (Recursive): " << f(0, n - 1, 1, exp, dp) << endl;
+
+    // Tabulation Approach
+    cout << "Number of ways (Tabulation): " << tabulation(exp) << endl;
+
+    return 0;
+}
